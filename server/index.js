@@ -7,10 +7,26 @@ import { PORT } from "./config.js";
 
 const app = express()
 const server = http.createServer(app)
-const io = new SocketServer(server)
+const io = new SocketServer(server, {
+    cors: {
+        origin: 'http://localhost:3000',
+    }
+})
 
 app.use(cors())
 app.use(morgan('dev'))
 
-app.listen(PORT)
+io.on('connection', (socket) => {
+    console.log(socket.id)
+
+    socket.on('message', (message) => {
+        console.log(message)
+        socket.broadcast.emit('message', {
+            from: socket.id,
+            body: message
+        })
+    })
+})
+
+server.listen(PORT)
 console.log('Application running in port', PORT)
